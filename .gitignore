@@ -1,0 +1,4 @@
+__pycache__
+build
+docker-compose.yml
+*.pdf
