@@ -11,14 +11,13 @@ app.app_context().push()
 db.init_app(app)
 db.create_all()
 
-
 #Catch undefined paths
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def catch_all(path):
     return make_response("Server is up! path: {}".format(path))
 
-# Prepare response format
+#Prepare response format
 def make_response(rv):
     resp = Response(rv)
     resp.headers['Access-Control-Allow-Origin'] = '*'

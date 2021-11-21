@@ -16,8 +16,8 @@ class Category(db.Model):
 
 class Author(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    first_name = db.Column(db.String(40), unique=True, nullable=False)
-    last_name = db.Column(db.String(40), unique=True, nullable=False)
+    first_name = db.Column(db.String(40), nullable=False)
+    last_name = db.Column(db.String(40), nullable=False)
     blog_amount = db.Column(db.Integer, nullable=False)
     date_joined = db.Column(db.DateTime, nullable=False)
 
@@ -32,7 +32,7 @@ class Blogs(db.Model):
     title = db.Column(db.String(40), unique=True, nullable=False)
     content = db.Column(db.String(200), unique=True, nullable=False)
     date_created = db.Column(db.DateTime, nullable=False)
-    image = db.Column(db.String(40), nullable=False)
+    image = db.Column(db.String(200), nullable=False)
     tags = db.Column(db.String(200), nullable=False)
     category = db.Column(db.Integer, nullable=False)
     author = db.Column(db.Integer, nullable=False)
