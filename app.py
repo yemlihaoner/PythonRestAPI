@@ -1,23 +1,16 @@
-from flask import Flask, request, Response, jsonify
-from flask_sqlalchemy import SQLAlchemy
-
-from utilization import initializeAppAndDb, make_response
+from flask import Flask, Response
+from models import db
 
 # App Initialization
-app,db = initializeAppAndDb(__name__)
-
-# Model Class for Postgres integration
-class Item(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), unique=True, nullable=False)
-    content = db.Column(db.String(200), nullable=False)
-
-    def __init__(self, title, content):
-        self.title = title
-        self.content = content
-
-#Creates defined tables above
+app = Flask(__name__)
+app.config.from_pyfile('./config/appconfig.cfg')
+app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{app.config['PG_USER']}:{app.config['PG_PASSWORD']}@{app.config['PG_HOST']}:{app.config['PG_PORT']}/{app.config ['PG_DATABASE']}"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.secret_key = 'secret'
+app.app_context().push()
+db.init_app(app)
 db.create_all()
+
 
 #Catch undefined paths
 @app.route('/', defaults={'path': ''})
@@ -25,47 +18,9 @@ db.create_all()
 def catch_all(path):
     return make_response("Server is up! path: {}".format(path))
 
-#Get all the items
-@app.route('/items', methods=['GET'])
-def get_items():
-    items = []
-    for item in db.session.query(Item).all():
-        del item.__dict__['_sa_instance_state']
-        items.append(item.__dict__)
-    return jsonify(items)
-
-#Get the spesific item
-@app.route('/items/<id>', methods=['GET'])
-def get_item(id):
-    item = Item.query.get(id)
-    if(type(item) is Item):
-        del item.__dict__['_sa_instance_state']
-        return jsonify(item.__dict__)
-    return make_response("item is not found")
-
-#Add a new item 
-@app.route('/items', methods=['POST'])
-def create_item():
-    body = request.get_json()
-    db.session.add(Item(body['title'], body['content']))
-    db.session.commit()
-    return make_response("item created")
-
-#Update the item with the given id
-@app.route('/items/<id>', methods=['PUT'])
-def update_item(id):
-    body = request.get_json()
-    db.session.query(Item).filter_by(id=id).update(
-        dict(title=body['title'], content=body['content']))
-    db.session.commit()
-    return make_response("item updated")
-
-#Delete the item with the given id
-@app.route('/items/<id>', methods=['DELETE'])
-def delete_item(id):
-    item = Item.query.get(id)
-    if(type(item) is Item):
-        db.session.query(Item).filter_by(id=id).delete()
-        db.session.commit()
-        return make_response("item deleted")
-    return make_response("item is not found")
+# Prepare response format
+def make_response(rv):
+    resp = Response(rv)
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    resp.headers['Access-Control-Allow-Credentials'] = 'true'
+    return resp
